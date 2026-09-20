@@ -8,171 +8,149 @@ app = Flask(__name__)
 # ============================================================
 
 CAREERS = {
-    "Software Developer": {
-        "skills": ["Python", "JavaScript", "HTML", "CSS", "SQL", "Git"],
-        "roadmap": [
-            "Programming Fundamentals",
-            "HTML & CSS",
-            "JavaScript",
+    "AI/ML Engineer": {
+        "skills": [
             "Python",
-            "SQL & Databases",
-            "Git & GitHub",
-            "Build Real-World Projects",
-            "Interview Preparation"
+            "NumPy",
+            "Pandas",
+            "Statistics",
+            "Machine Learning",
+            "Deep Learning"
+        ],
+        "roadmap": [
+            "Python",
+            "NumPy & Pandas",
+            "Statistics",
+            "Machine Learning"
         ],
         "courses": [
-            "Python Programming",
-            "JavaScript Fundamentals",
-            "SQL for Developers",
-            "Git & GitHub"
+            "Python fundamentals course",
+            "Data analysis exercises",
+            "Statistics problem set",
+            "Machine Learning"
         ],
         "projects": [
-            "To-Do Web Application",
-            "Student Management System",
-            "E-Commerce Website"
+            "Build a Python calculator",
+            "Analyze a student dataset",
+            "Create a statistics report",
+            "Build a simple prediction model"
+        ]
+    },
+
+    "Data Scientist": {
+        "skills": [
+            "Python",
+            "SQL",
+            "Statistics",
+            "Pandas",
+            "Machine Learning",
+            "Data Visualization"
+        ],
+        "roadmap": [
+            "Python for data analysis",
+            "Pandas & SQL",
+            "Statistics",
+            "Machine Learning"
+        ],
+        "courses": [
+            "Python for Data Science",
+            "SQL query practice",
+            "Statistics fundamentals",
+            "Machine Learning"
+        ],
+        "projects": [
+            "Data cleaning project",
+            "Analyze a public dataset",
+            "Statistical analysis report",
+            "Build a prediction model"
         ]
     },
 
     "Data Analyst": {
-        "skills": ["Python", "SQL", "Excel", "Statistics", "Power BI"],
-        "roadmap": [
-            "Excel Fundamentals",
-            "Statistics Basics",
+        "skills": [
+            "Excel",
             "SQL",
-            "Python for Data Analysis",
-            "Data Visualization",
+            "Python",
+            "Statistics",
             "Power BI",
-            "Real-World Data Projects",
-            "Portfolio Building"
+            "Data Visualization"
+        ],
+        "roadmap": [
+            "Excel",
+            "SQL",
+            "Statistics",
+            "Power BI"
         ],
         "courses": [
             "Advanced Excel",
-            "SQL for Data Analysis",
-            "Python Pandas",
+            "SQL challenges",
+            "Statistics basics",
             "Power BI"
         ],
         "projects": [
-            "Sales Dashboard",
-            "Customer Data Analysis",
-            "COVID-19 Data Analysis"
+            "Create a sales dashboard",
+            "Database analysis",
+            "Data insights report",
+            "Interactive business dashboard"
         ]
     },
 
-    "Web Developer": {
-        "skills": ["HTML", "CSS", "JavaScript", "Git", "React"],
-        "roadmap": [
+    "Full Stack Developer": {
+        "skills": [
             "HTML",
             "CSS",
             "JavaScript",
-            "Git & GitHub",
             "React",
-            "APIs",
-            "Responsive Web Design",
-            "Deploy Websites"
-        ],
-        "courses": [
-            "HTML & CSS",
-            "JavaScript",
-            "React",
-            "Git & GitHub"
-        ],
-        "projects": [
-            "Portfolio Website",
-            "Weather Application",
-            "Online Shopping Website"
-        ]
-    },
-
-    "UI/UX Designer": {
-        "skills": [
-            "Figma",
-            "UI Design",
-            "UX Research",
-            "Wireframing",
-            "Prototyping"
-        ],
-        "roadmap": [
-            "Design Fundamentals",
-            "UI Design Principles",
-            "Figma",
-            "UX Research",
-            "Wireframing",
-            "Prototyping",
-            "Usability Testing",
-            "Design Portfolio"
-        ],
-        "courses": [
-            "Figma UI Design",
-            "UX Research",
-            "Design Thinking",
-            "Prototyping"
-        ],
-        "projects": [
-            "Mobile Banking App",
-            "Food Delivery App",
-            "College Management App"
-        ]
-    },
-
-    "Cyber Security Analyst": {
-        "skills": [
-            "Networking",
-            "Linux",
-            "Python",
-            "Cyber Security",
-            "Git"
-        ],
-        "roadmap": [
-            "Computer Networking",
-            "Linux Fundamentals",
-            "Cyber Security Basics",
-            "Python",
-            "Web Security",
-            "Ethical Hacking Fundamentals",
-            "Security Projects",
-            "Security Interview Preparation"
-        ],
-        "courses": [
-            "Computer Networking",
-            "Linux Fundamentals",
-            "Cyber Security Fundamentals",
-            "Python Security"
-        ],
-        "projects": [
-            "Network Scanner",
-            "Password Strength Checker",
-            "Security Log Analyzer"
-        ]
-    },
-
-    "AI / ML Engineer": {
-        "skills": [
-            "Python",
-            "Statistics",
-            "Machine Learning",
+            "Node.js",
             "SQL",
             "Git"
         ],
         "roadmap": [
-            "Python Programming",
-            "Mathematics",
-            "Statistics",
-            "NumPy & Pandas",
-            "Machine Learning",
-            "Model Evaluation",
-            "Deep Learning Basics",
-            "ML Projects"
+            "HTML & CSS",
+            "JavaScript",
+            "React",
+            "Node.js & SQL"
         ],
         "courses": [
-            "Python for AI",
-            "Statistics for Machine Learning",
-            "Machine Learning",
-            "Deep Learning"
+            "Web development fundamentals",
+            "JavaScript challenges",
+            "Build a React dashboard",
+            "Backend development"
         ],
         "projects": [
-            "House Price Prediction",
-            "Spam Detection",
-            "Recommendation System"
+            "Build a portfolio website",
+            "Build an interactive web app",
+            "Build a React dashboard",
+            "Build a full-stack application"
+        ]
+    },
+
+    "DevOps": {
+        "skills": [
+            "Linux",
+            "Git",
+            "Docker",
+            "AWS",
+            "CI/CD",
+            "Kubernetes"
+        ],
+        "roadmap": [
+            "Linux & Git",
+            "Docker",
+            "AWS",
+            "CI/CD"
+        ],
+        "courses": [
+            "Linux fundamentals",
+            "Container challenges",
+            "Cloud fundamentals",
+            "Deployment pipeline"
+        ],
+        "projects": [
+            "Create a Git-based project",
+            "Containerize an application",
+            "Deploy a web application",
+            "Create a CI/CD pipeline"
         ]
     }
 }
