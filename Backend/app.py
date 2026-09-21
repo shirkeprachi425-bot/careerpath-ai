@@ -1,8 +1,28 @@
+from flask_cors import CORS
 from flask import Flask, request, jsonify
+import sqlite3
+
+from flask import Flask, request, jsonify
+import sqlite3
+DB_NAME = "careerpath.db"
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            skill TEXT NOT NULL,
+            completed INTEGER DEFAULT 0
+        )
+    """)
+
+    conn.commit()
+    conn.close()
 from datetime import datetime
 
 app = Flask(__name__)
-
+CORS(app)
 # ============================================================
 # CAREER DATABASE
 # ============================================================
@@ -620,12 +640,21 @@ def ai_explanation():
         "explanation": explanation
     })
 
+@app.route("/api/progress", methods=["POST"])
+def save_progress():
+    data = request.get_json() or {}
 
+    return jsonify({
+        "message": "Progress saved",
+        "skill": data.get("skill", ""),
+        "completed": True
+    })
 # ============================================================
 # RUN SERVER
 # ============================================================
-
+init_db()
 if __name__ == "__main__":
+
     app.run(
         host="127.0.0.1",
         port=5000,
