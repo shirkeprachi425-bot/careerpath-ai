@@ -1,0 +1,301 @@
+.progress-page {
+  min-height: 100vh;
+  padding: 40px;
+  background: #f6f8fc;
+  color: #1f2937;
+  box-sizing: border-box;
+}
+
+/* Header */
+
+.progress-header {
+  max-width: 1100px;
+  margin: 0 auto 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.small-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6366f1;
+  letter-spacing: 1.5px;
+}
+
+.progress-header h1 {
+  margin: 0;
+  font-size: 36px;
+}
+
+.progress-header p {
+  margin-top: 8px;
+  color: #6b7280;
+}
+
+.back-btn {
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  opacity: 0.9;
+}
+
+/* Overall Progress */
+
+.progress-card {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  box-sizing: border-box;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+}
+
+.main-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-info h2 {
+  margin-bottom: 8px;
+}
+
+.progress-info p {
+  color: #6b7280;
+}
+
+/* Circle */
+
+.circle-progress {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #6366f1 65%,
+    #e5e7eb 65%
+  );
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle-progress::before {
+  content: "";
+  position: absolute;
+}
+
+.circle-progress span {
+  width: 88px;
+  height: 88px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Statistics */
+
+.stats-grid {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.stat-card {
+  background: white;
+  padding: 22px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.stat-card h3 {
+  margin: 5px 0;
+  font-size: 28px;
+}
+
+.stat-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Learning Progress */
+
+.section-card {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  background: white;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.section-card h2 {
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+.skill-progress {
+  margin-bottom: 22px;
+}
+
+.skill-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.skill-top strong {
+  color: #6366f1;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 9px;
+  background: #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: #6366f1;
+}
+
+.programming {
+  width: 80%;
+}
+
+.web {
+  width: 65%;
+}
+
+.database {
+  width: 55%;
+}
+
+.communication {
+  width: 70%;
+}
+
+/* Goal */
+
+.goal-card {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 18px;
+  background: #eef2ff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.goal-label {
+  color: #6366f1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.goal-card h2 {
+  margin: 5px 0;
+}
+
+.goal-card p {
+  color: #6b7280;
+}
+
+.goal-card button {
+  border: none;
+  background: #6366f1;
+  color: white;
+  padding: 13px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.goal-card button:hover {
+  opacity: 0.9;
+}
+
+/* Mobile */
+
+@media (max-width: 800px) {
+  .progress-page {
+    padding: 20px;
+  }
+
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .progress-header h1 {
+    font-size: 28px;
+  }
+
+  .main-progress {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 25px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .goal-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 500px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-page {
+    padding: 15px;
+  }
+
+  .circle-progress {
+    width: 100px;
+    height: 100px;
+  }
+
+  .circle-progress span {
+    width: 74px;
+    height: 74px;
+  }
+}

@@ -1,0 +1,125 @@
+.student-info-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f5f7ff, #eef2ff);
+}
+
+.student-info-card {
+  width: 100%;
+  max-width: 720px;
+  background: white;
+  padding: 42px;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(30, 41, 59, 0.12);
+}
+
+.student-info-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.student-info-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: #eef2ff;
+  font-size: 30px;
+}
+
+.student-info-header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #172554;
+}
+
+.student-info-header p {
+  margin-top: 10px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.student-info-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.student-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-field.full {
+  grid-column: 1 / -1;
+}
+
+.student-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.student-field input,
+.student-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 15px;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  outline: none;
+  font-size: 15px;
+  background: #fff;
+  transition: 0.2s;
+}
+
+.student-field input:focus,
+.student-field select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.student-submit {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding: 15px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.student-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25);
+}
+
+@media (max-width: 650px) {
+  .student-info-card {
+    padding: 28px 20px;
+  }
+
+  .student-info-header h1 {
+    font-size: 26px;
+  }
+
+  .student-info-form {
+    grid-template-columns: 1fr;
+  }
+
+  .student-field.full,
+  .student-submit {
+    grid-column: auto;
+  }
+}
