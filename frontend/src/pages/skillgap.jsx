@@ -1,4 +1,4 @@
-import "./SkillGap.css";
+import "./skillgap.css";
 
 function SkillGap({
   profile,

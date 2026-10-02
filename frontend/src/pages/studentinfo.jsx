@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./studentInfo.css";
+import "./studentinfo.css";
 
 function StudentInfo({ user }) {
   const navigate = useNavigate();
