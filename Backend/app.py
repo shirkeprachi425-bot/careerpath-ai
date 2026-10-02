@@ -1,4 +1,8 @@
 from flask import Flask, request, jsonify
+import os
+import json
+from google import genai
+from google.genai import types
 from flask_cors import CORS
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +12,16 @@ CORS(app)
 
 DB_NAME = "careerpath.db"
 
+# ==============================
+# GEMINI AI
+# ==============================
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+gemini_client = None
+
+if GEMINI_API_KEY:
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 # ==============================
 # DATABASE CONNECTION
@@ -102,6 +116,34 @@ def init_db():
             experience TEXT NOT NULL,
             study_time TEXT NOT NULL,
             interests TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
+    # Assessment results table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS assessment_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            attempt_number INTEGER NOT NULL,
+            score INTEGER NOT NULL,
+            total_questions INTEGER NOT NULL,
+            percentage INTEGER NOT NULL,
+            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
+    # Assessment attempts table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS assessment_attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            score INTEGER NOT NULL,
+            total_questions INTEGER NOT NULL,
+            percentage INTEGER NOT NULL,
+            question_ids TEXT NOT NULL,
+            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
@@ -393,6 +435,448 @@ def get_student_profile(user_id):
             "interests": profile["interests"]
         }
     }), 200
+
+# ==============================
+# ASSESSMENT QUESTIONS API
+# ==============================
+
+@app.route("/api/assessment/questions/<int:user_id>", methods=["GET"])
+def get_assessment_questions(user_id):
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check whether user exists
+    cursor.execute(
+        "SELECT id FROM users WHERE id = ?",
+        (user_id,)
+    )
+
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+
+        return jsonify({
+            "error": "User not found."
+        }), 404
+
+    # Count previous assessment attempts
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS attempt_count
+        FROM assessment_attempts
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    attempt_count = cursor.fetchone()["attempt_count"]
+
+    conn.close()
+
+    # First attempt → first 10 questions
+    # Second attempt → next 10 questions
+    # Third attempt → first 10 again
+    # This can later be expanded with more question sets.
+
+    if attempt_count % 2 == 0:
+        selected_questions = ASSESSMENT_QUESTIONS[:10]
+    else:
+        selected_questions = ASSESSMENT_QUESTIONS[10:20]
+
+    questions = []
+
+    for question in selected_questions:
+
+        questions.append({
+            "id": question["id"],
+            "category": question["category"],
+            "question": question["question"],
+            "options": question["options"]
+        })
+
+    return jsonify({
+        "success": True,
+        "attemptNumber": attempt_count + 1,
+        "questions": questions
+    }), 200
+
+# ==============================
+# SUBMIT ASSESSMENT
+# ==============================
+
+@app.route("/api/assessment/submit", methods=["POST"])
+def submit_assessment():
+
+    data = request.get_json() or {}
+
+    user_id = data.get("userId")
+    answers = data.get("answers", [])
+
+    # ------------------------------
+    # Basic validation
+    # ------------------------------
+
+    if not user_id:
+        return jsonify({
+            "error": "User ID is required."
+        }), 400
+
+    if not isinstance(answers, list):
+        return jsonify({
+            "error": "Answers must be provided as a list."
+        }), 400
+
+    # ------------------------------
+    # Check user
+    # ------------------------------
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id FROM users WHERE id = ?",
+        (user_id,)
+    )
+
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+
+        return jsonify({
+            "error": "User not found."
+        }), 404
+
+    # ------------------------------
+    # Determine current question set
+    # ------------------------------
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS attempt_count
+        FROM assessment_attempts
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    attempt_count = cursor.fetchone()["attempt_count"]
+
+    if attempt_count % 2 == 0:
+        current_questions = ASSESSMENT_QUESTIONS[:10]
+    else:
+        current_questions = ASSESSMENT_QUESTIONS[10:20]
+
+    # ------------------------------
+    # Check answer count
+    # ------------------------------
+
+    if len(answers) != len(current_questions):
+        conn.close()
+
+        return jsonify({
+            "error": "Please answer all assessment questions."
+        }), 400
+
+    # ------------------------------
+    # Calculate score
+    # ------------------------------
+
+    score = 0
+
+    question_ids = []
+
+    for item in answers:
+
+        question_id = item.get("questionId")
+        user_answer = item.get("answer")
+
+        question_ids.append(question_id)
+
+        matching_question = next(
+            (
+                question
+                for question in current_questions
+                if question["id"] == question_id
+            ),
+            None
+        )
+
+        if matching_question:
+
+            if user_answer == matching_question["answer"]:
+                score += 1
+
+    total_questions = len(current_questions)
+
+    percentage = round(
+        (score / total_questions) * 100
+    )
+
+    # ------------------------------
+    # Save assessment attempt
+    # ------------------------------
+
+    import json
+
+    cursor.execute(
+        """
+        INSERT INTO assessment_attempts
+        (
+            user_id,
+            score,
+            total_questions,
+            percentage,
+            question_ids
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            user_id,
+            score,
+            total_questions,
+            percentage,
+            json.dumps(question_ids)
+        )
+    )
+
+    # ------------------------------
+    # Update latest result
+    # ------------------------------
+
+    attempt_number = attempt_count + 1
+
+    cursor.execute( 
+    """
+        SELECT id
+        FROM assessment_results
+        WHERE user_id = ?
+    """,
+    (user_id,)
+    )
+
+    existing_result = cursor.fetchone()
+
+    if existing_result:
+
+        cursor.execute(
+        """
+        UPDATE assessment_results
+        SET attempt_number = ?,
+            score = ?,
+            total_questions = ?,
+            percentage = ?,
+            completed_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+        """,
+        (
+            attempt_number,
+            score,
+            total_questions,
+            percentage,
+            user_id
+        )
+    )
+
+    else:
+
+        cursor.execute(
+        """
+        INSERT INTO assessment_results
+        (
+            user_id,
+            attempt_number,
+            score,
+            total_questions,
+            percentage
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            user_id,
+            attempt_number,
+            score,
+            total_questions,
+            percentage
+        )
+    )
+    conn.commit()
+
+    # Get new attempt ID
+    attempt_id = cursor.lastrowid
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": "Assessment submitted successfully.",
+        "result": {
+            "attemptId": attempt_id,
+            "score": score,
+            "total": total_questions,
+            "percentage": percentage,
+            "attemptNumber": attempt_count + 1
+        }
+    }), 200
+
+# ==============================
+# GET ASSESSMENT RESULT
+# ==============================
+
+@app.route("/api/assessment/<int:user_id>", methods=["GET"])
+def get_assessment_result(user_id):
+
+    conn = get_db()
+
+    result = conn.execute(
+        """
+        SELECT
+            user_id,
+            score,
+            total_questions,
+            percentage,
+            completed_at
+        FROM assessment_results
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if not result:
+        return jsonify({
+            "success": True,
+            "result": None
+        }), 200
+
+    return jsonify({
+        "success": True,
+        "result": {
+            "userId": result["user_id"],
+            "score": result["score"],
+            "total": result["total_questions"],
+            "percentage": result["percentage"],
+            "completedAt": result["completed_at"]
+        }
+    }), 200
+
+# ==============================
+# GET ASSESSMENT HISTORY
+# ==============================
+
+@app.route("/api/assessment/<int:user_id>/history", methods=["GET"])
+def get_assessment_history(user_id):
+
+    conn = get_db()
+
+    attempts = conn.execute(
+        """
+        SELECT
+            id,
+            score,
+            total_questions,
+            percentage,
+            completed_at
+        FROM assessment_attempts
+        WHERE user_id = ?
+        ORDER BY completed_at DESC
+        """,
+        (user_id,)
+    ).fetchall()
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "attempts": [
+            {
+                "attemptId": attempt["id"],
+                "score": attempt["score"],
+                "total": attempt["total_questions"],
+                "percentage": attempt["percentage"],
+                "completedAt": attempt["completed_at"]
+            }
+            for attempt in attempts
+        ]
+    }), 200
+
+# ==============================
+# USER ONBOARDING STATUS
+# ==============================
+
+@app.route("/api/user/<int:user_id>/status", methods=["GET"])
+def get_user_status(user_id):
+
+    conn = get_db()
+
+    cursor = conn.cursor()
+
+    # Check user
+    cursor.execute(
+        "SELECT id, name, email FROM users WHERE id = ?",
+        (user_id,)
+    )
+
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+
+        return jsonify({
+            "error": "User not found."
+        }), 404
+
+    # Check profile
+    cursor.execute(
+        """
+        SELECT id
+        FROM student_profiles
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    profile = cursor.fetchone()
+
+    # Get latest assessment
+    cursor.execute(
+        """
+        SELECT
+            score,
+            total_questions,
+            percentage,
+            completed_at
+        FROM assessment_results
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    assessment = cursor.fetchone()
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+
+        "profileCompleted": profile is not None,
+
+        "assessmentCompleted": assessment is not None,
+
+        "assessment": (
+            {
+                "score": assessment["score"],
+                "total": assessment["total_questions"],
+                "percentage": assessment["percentage"],
+                "completedAt": assessment["completed_at"]
+            }
+            if assessment
+            else None
+        )
+    }), 200
 # ==============================
 # CAREER DATA
 # ==============================
@@ -554,6 +1038,493 @@ CAREER_DATA = {
     }
 }
 
+
+# ==============================
+# AI CAREER RECOMMENDATION
+# ==============================
+
+def generate_ai_recommendation(profile, assessment):
+
+    if not gemini_client:
+        raise Exception("GEMINI_API_KEY is not configured.")
+
+    career_context = {}
+
+    for career_name, career_data in CAREER_DATA.items():
+
+        career_context[career_name] = {
+            "description": career_data["description"],
+            "skills": career_data["skills"],
+            "resources": career_data["resources"]
+        }
+
+    prompt = f"""
+You are CareerPath AI, an AI career guidance assistant.
+
+Your task is to analyze a student's profile and assessment result
+and recommend suitable technology career paths.
+
+STUDENT PROFILE:
+
+Education:
+{profile["education"]}
+
+Current Skills:
+{profile["skills"]}
+
+Experience:
+{profile["experience"]}
+
+Interests:
+{profile["interests"]}
+
+Available Study Time:
+{profile["studyTime"]}
+
+
+ASSESSMENT RESULT:
+
+Score:
+{assessment["score"]}/{assessment["total"]}
+
+Percentage:
+{assessment["percentage"]}%
+
+
+AVAILABLE CAREERS:
+
+{json.dumps(career_context, indent=2)}
+
+
+IMPORTANT RULES:
+
+1. Recommend ONE primary career.
+2. You may mention up to TWO alternative careers.
+3. Base the recommendation on BOTH the student profile and assessment.
+4. Identify the student's current strengths.
+5. Identify the most important skill gaps for the recommended career.
+6. Recommend resources ONLY from the provided career data.
+7. Create a practical short learning roadmap.
+8. Do not invent resources or URLs.
+9. Keep the response concise and suitable for displaying on a dashboard.
+10. Return ONLY valid JSON.
+
+Return JSON in exactly this structure:
+
+{{
+    "recommendedCareer": "career name",
+    "confidence": 0,
+    "reason": "short explanation",
+    "strengths": [
+        "strength 1",
+        "strength 2",
+        "strength 3"
+    ],
+    "skillGaps": [
+        "skill gap 1",
+        "skill gap 2",
+        "skill gap 3"
+    ],
+    "recommendedResources": [
+        {{
+            "title": "resource title",
+            "url": "resource url",
+            "reason": "why this resource helps"
+        }}
+    ],
+    "roadmap": [
+        {{
+            "step": 1,
+            "title": "step title",
+            "description": "short description"
+        }},
+        {{
+            "step": 2,
+            "title": "step title",
+            "description": "short description"
+        }},
+        {{
+            "step": 3,
+            "title": "step title",
+            "description": "short description"
+        }}
+    ]
+}}
+"""
+
+    response = gemini_client.models.generate_content(
+    model="gemini-3.5-flash",
+    contents=prompt,
+    config=types.GenerateContentConfig(
+        response_mime_type="application/json",
+        temperature=0.3
+    )
+
+)
+
+    return json.loads(response.text)
+
+# ==============================
+# AI RECOMMENDATION API
+# ==============================
+
+@app.route("/api/ai/recommend/<int:user_id>", methods=["GET"])
+def get_ai_recommendation(user_id):
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get student profile
+    cursor.execute(
+        """
+        SELECT
+            education,
+            skills,
+            experience,
+            study_time,
+            interests
+        FROM student_profiles
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    profile_row = cursor.fetchone()
+
+    if not profile_row:
+        conn.close()
+
+        return jsonify({
+            "success": False,
+            "error": "Student profile not found."
+        }), 404
+
+    # Get latest assessment
+    cursor.execute(
+        """
+        SELECT
+            score,
+            total_questions,
+            percentage
+        FROM assessment_results
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    assessment_row = cursor.fetchone()
+
+    conn.close()
+
+    if not assessment_row:
+        return jsonify({
+            "success": False,
+            "error": "Assessment not completed."
+        }), 404
+
+    profile = {
+        "education": profile_row["education"],
+        "skills": profile_row["skills"],
+        "experience": profile_row["experience"],
+        "studyTime": profile_row["study_time"],
+        "interests": profile_row["interests"]
+    }
+
+    assessment = {
+        "score": assessment_row["score"],
+        "total": assessment_row["total_questions"],
+        "percentage": assessment_row["percentage"]
+    }
+
+    try:
+
+        recommendation = generate_ai_recommendation(
+            profile,
+            assessment
+        )
+
+        return jsonify({
+            "success": True,
+            "userId": user_id,
+            "assessment": assessment,
+            "recommendation": recommendation
+        }), 200
+
+    except Exception as e:
+
+        print("AI ERROR:", str(e))
+
+        return jsonify({
+            "success": False,
+            "error": "AI recommendation failed.",
+            "details": str(e)
+        }), 500
+# ==============================
+# ASSESSMENT QUESTIONS
+# ==============================
+
+ASSESSMENT_QUESTIONS = [
+
+    {
+        "id": 1,
+        "category": "Data Science",
+        "question": "Which Python library is commonly used for data analysis?",
+        "options": [
+            "Pandas",
+            "React",
+            "Express",
+            "Bootstrap"
+        ],
+        "answer": "Pandas"
+    },
+
+    {
+        "id": 2,
+        "category": "Web Development",
+        "question": "Which technology is mainly used to create the structure of a web page?",
+        "options": [
+            "HTML",
+            "Python",
+            "SQL",
+            "MongoDB"
+        ],
+        "answer": "HTML"
+    },
+
+    {
+        "id": 3,
+        "category": "Web Development",
+        "question": "Which JavaScript library is commonly used to build user interfaces?",
+        "options": [
+            "React",
+            "Flask",
+            "MySQL",
+            "Pandas"
+        ],
+        "answer": "React"
+    },
+
+    {
+        "id": 4,
+        "category": "Data Science",
+        "question": "Which SQL command is used to retrieve data from a table?",
+        "options": [
+            "GET",
+            "SELECT",
+            "FETCHALL",
+            "OPEN"
+        ],
+        "answer": "SELECT"
+    },
+
+    {
+        "id": 5,
+        "category": "AI/ML",
+        "question": "Which of the following is a machine learning algorithm?",
+        "options": [
+            "Linear Regression",
+            "HTML",
+            "CSS",
+            "Git"
+        ],
+        "answer": "Linear Regression"
+    },
+
+    {
+        "id": 6,
+        "category": "Cyber Security",
+        "question": "Which of the following is used to protect an account from unauthorized access?",
+        "options": [
+            "Authentication",
+            "Compilation",
+            "Rendering",
+            "Sorting"
+        ],
+        "answer": "Authentication"
+    },
+
+    {
+        "id": 7,
+        "category": "Cloud Computing",
+        "question": "Which of the following is a cloud computing platform?",
+        "options": [
+            "AWS",
+            "HTML",
+            "React",
+            "Pandas"
+        ],
+        "answer": "AWS"
+    },
+
+    {
+        "id": 8,
+        "category": "Problem Solving",
+        "question": "What is the main purpose of an algorithm?",
+        "options": [
+            "To solve a problem step by step",
+            "To design a webpage",
+            "To store passwords",
+            "To create images"
+        ],
+        "answer": "To solve a problem step by step"
+    },
+
+    {
+        "id": 9,
+        "category": "AI/ML",
+        "question": "What does ML stand for?",
+        "options": [
+            "Machine Learning",
+            "Maximum Logic",
+            "Modern Language",
+            "Memory Layer"
+        ],
+        "answer": "Machine Learning"
+    },
+
+    {
+        "id": 10,
+        "category": "Cyber Security",
+        "question": "Which of the following is an example of a strong password?",
+        "options": [
+            "123456",
+            "password",
+            "Dinesh123",
+            "T9#kL2@pQ7!"
+        ],
+        "answer": "T9#kL2@pQ7!"
+    },
+    
+    {
+        "id": 11,
+        "category": "Data Science",
+        "question": "Which library is commonly used for numerical computing in Python?",
+        "options": [
+            "NumPy",
+            "React",
+            "Flask",
+            "Express"
+        ],
+        "answer": "NumPy"
+    },
+
+    {
+        "id": 12,
+        "category": "Web Development",
+        "question": "Which CSS property is used to change the text color?",
+        "options": [
+            "font-style",
+            "color",
+            "background",
+            "text-size"
+        ],
+        "answer": "color"
+    },
+
+    {
+        "id": 13,
+        "category": "Web Development",
+        "question": "Which HTTP method is commonly used to send data to a server?",
+        "options": [
+            "GET",
+            "POST",
+            "READ",
+            "FETCH"
+        ],
+        "answer": "POST"
+    },
+
+    {
+        "id": 14,
+        "category": "Data Science",
+        "question": "Which SQL clause is used to filter rows?",
+        "options": [
+            "ORDER BY",
+            "GROUP BY",
+            "WHERE",
+            "SELECT"
+        ],
+        "answer": "WHERE"
+    },
+
+    {
+        "id": 15,
+        "category": "AI/ML",
+        "question": "Which type of learning uses labeled training data?",
+        "options": [
+            "Supervised Learning",
+            "Unsupervised Learning",
+            "Random Learning",
+            "Manual Learning"
+        ],
+        "answer": "Supervised Learning"
+    },
+
+    {
+        "id": 16,
+        "category": "Cyber Security",
+        "question": "What does HTTPS provide for a website connection?",
+        "options": [
+            "Encrypted communication",
+            "Faster CPU processing",
+            "More storage",
+            "Automatic backups"
+        ],
+        "answer": "Encrypted communication"
+    },
+
+    {
+        "id": 17,
+        "category": "Cloud Computing",
+        "question": "What is cloud storage mainly used for?",
+        "options": [
+            "Storing data on remote servers",
+            "Designing websites",
+            "Writing CSS",
+            "Compiling JavaScript"
+        ],
+        "answer": "Storing data on remote servers"
+    },
+
+    {
+        "id": 18,
+        "category": "Problem Solving",
+        "question": "Which data structure follows the FIFO principle?",
+        "options": [
+            "Stack",
+            "Queue",
+            "Tree",
+            "Graph"
+        ],
+        "answer": "Queue"
+    },
+
+    {
+        "id": 19,
+        "category": "AI/ML",
+        "question": "Which of the following is commonly used to evaluate a classification model?",
+        "options": [
+            "Accuracy",
+            "File Size",
+            "Screen Resolution",
+            "CPU Temperature"
+        ],
+        "answer": "Accuracy"
+    },
+
+    {
+        "id": 20,
+        "category": "Cyber Security",
+        "question": "What is the purpose of authorization?",
+        "options": [
+            "To determine what an authenticated user is allowed to access",
+            "To create a password",
+            "To compress files",
+            "To connect a database"
+        ],
+        "answer": "To determine what an authenticated user is allowed to access"
+    }
+]
 
 # ==============================
 # INSERT CAREER DATA

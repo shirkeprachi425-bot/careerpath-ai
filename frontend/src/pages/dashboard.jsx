@@ -1,14 +1,123 @@
+import { useEffect, useState } from "react";
 import "./Dashboard.css";
 
 function Dashboard({
   userName = "User",
-  career = "Software Developer",
-  progress = 0,
+  userId,
   onSkillGap,
   onRoadmap,
   onResources,
   onProgress,
 }) {
+  const [recommendation, setRecommendation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchRecommendation = async () => {
+      if (!userId) {
+        setError("User ID not available.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          `http://127.0.0.1:5000/api/ai/recommend/${userId}`
+        );
+
+        const data = await response.json();
+
+        console.log("AI RECOMMENDATION:", data);
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.details ||
+              data.error ||
+              "Failed to load AI recommendation."
+          );
+        }
+
+        setRecommendation(data.recommendation);
+      } catch (err) {
+        console.error("AI RECOMMENDATION ERROR:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecommendation();
+  }, [userId]);
+
+  // ------------------------------
+  // Loading state
+  // ------------------------------
+
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-welcome">
+          <div>
+            <span className="dashboard-label">YOUR DASHBOARD</span>
+
+            <h1>
+              Welcome back, <strong>{userName}</strong> 👋
+            </h1>
+
+            <p>
+              Your AI career recommendation is being prepared...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ------------------------------
+  // Error state
+  // ------------------------------
+
+  if (error) {
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-welcome">
+          <div>
+            <span className="dashboard-label">YOUR DASHBOARD</span>
+
+            <h1>
+              Welcome back, <strong>{userName}</strong> 👋
+            </h1>
+
+            <p>
+              We couldn't load your AI recommendation right now.
+            </p>
+
+            <p style={{ color: "#d9534f", marginTop: "10px" }}>
+              {error}
+            </p>
+          </div>
+
+          <div className="dashboard-avatar">
+            {userName.charAt(0).toUpperCase()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const career = recommendation?.recommendedCareer || "Career not available";
+  const confidence = recommendation?.confidence || 0;
+  const reason = recommendation?.reason || "";
+
+  const strengths = recommendation?.strengths || [];
+  const skillGaps = recommendation?.skillGaps || [];
+  const roadmap = recommendation?.roadmap || [];
+  const resources = recommendation?.recommendedResources || [];
+
   return (
     <div className="dashboard-page">
 
@@ -22,8 +131,8 @@ function Dashboard({
           </h1>
 
           <p>
-            Continue your career journey and keep building
-            the skills you need for your future.
+            Continue your career journey with your personalized
+            AI-powered career plan.
           </p>
         </div>
 
@@ -40,10 +149,12 @@ function Dashboard({
         </div>
 
         <div className="career-summary-info">
-          <span>YOUR TARGET CAREER</span>
+          <span>AI RECOMMENDED CAREER</span>
+
           <h2>{career}</h2>
+
           <p>
-            Keep learning and complete your roadmap milestones.
+            {reason}
           </p>
         </div>
 
@@ -52,16 +163,16 @@ function Dashboard({
             className="dashboard-progress-circle"
             style={{
               background: `conic-gradient(#5965e8 ${
-                progress * 3.6
+                confidence * 3.6
               }deg, #e9ebf5 0deg)`,
             }}
           >
             <div>
-              <strong>{progress}%</strong>
+              <strong>{confidence}%</strong>
             </div>
           </div>
 
-          <span>Overall Progress</span>
+          <span>AI Confidence</span>
         </div>
 
       </section>
@@ -125,7 +236,7 @@ function Dashboard({
             <div>
               <h3>Resources</h3>
               <p>
-                Explore courses, projects and learning material.
+                Explore courses and learning material.
               </p>
             </div>
 
@@ -154,31 +265,82 @@ function Dashboard({
 
       </section>
 
-      {/* STATS */}
+      {/* AI STRENGTHS */}
       <section className="dashboard-stats">
 
         <div className="dashboard-stat-card">
-          <span>🎯</span>
+          <span>💪</span>
+
           <div>
-            <strong>Career Goal</strong>
-            <small>{career}</small>
+            <strong>Current Strengths</strong>
+
+            <small>
+              {strengths.length > 0
+                ? strengths.slice(0, 2).join(" • ")
+                : "No strengths available"}
+            </small>
           </div>
         </div>
 
         <div className="dashboard-stat-card">
           <span>📊</span>
+
           <div>
-            <strong>Skill Analysis</strong>
-            <small>Ready to explore</small>
+            <strong>Skill Gaps</strong>
+
+            <small>
+              {skillGaps.length > 0
+                ? `${skillGaps.length} areas to improve`
+                : "No skill gaps available"}
+            </small>
           </div>
         </div>
 
         <div className="dashboard-stat-card">
           <span>🗺️</span>
+
           <div>
             <strong>Learning Plan</strong>
-            <small>Personalized roadmap</small>
+
+            <small>
+              {roadmap.length} personalized steps
+            </small>
           </div>
+        </div>
+
+      </section>
+
+      {/* AI ROADMAP PREVIEW */}
+      <section className="dashboard-section">
+
+        <div className="dashboard-section-heading">
+          <div>
+            <span>AI LEARNING PLAN</span>
+            <h2>Your Personalized Roadmap</h2>
+          </div>
+        </div>
+
+        <div className="dashboard-actions">
+
+          {roadmap.map((item) => (
+            <div
+              className="dashboard-action"
+              key={item.step}
+            >
+              <div className="action-icon blue">
+                {item.step}
+              </div>
+
+              <div>
+                <h3>{item.title}</h3>
+
+                <p>
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          ))}
+
         </div>
 
       </section>
@@ -198,8 +360,8 @@ function Dashboard({
           </h2>
 
           <p>
-            Follow your roadmap, complete your milestones
-            and keep improving your skills.
+            Your roadmap is personalized using your profile,
+            interests and assessment performance.
           </p>
         </div>
 

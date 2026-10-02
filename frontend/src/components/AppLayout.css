@@ -1,0 +1,130 @@
+.app-navbar {
+  min-height: 72px;
+  padding: 0 5%;
+
+  display: flex;
+  align-items: center;
+  gap: 30px;
+
+  background: white;
+  border-bottom: 1px solid #e5e8f1;
+
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-navbar-logo {
+  font-size: 21px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.app-navbar-logo span {
+  color: #5965e8;
+}
+
+.app-navbar-links {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.app-navbar-links a {
+  color: #687189;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+
+  transition: 0.2s ease;
+}
+
+.app-navbar-links a:hover {
+  color: #5965e8;
+}
+
+.app-navbar-links a.active {
+  color: #5965e8;
+}
+
+.app-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-navbar-user {
+  color: #3a4257;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.app-navbar-logout {
+  padding: 9px 15px;
+
+  border: 1px solid #dfe3ef;
+  border-radius: 9px;
+
+  background: white;
+  color: #596175;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.app-navbar-logout:hover {
+  border-color: #5965e8;
+  color: #5965e8;
+}
+
+@media (max-width: 950px) {
+  .app-navbar {
+    gap: 15px;
+    padding: 0 20px;
+  }
+
+  .app-navbar-links {
+    gap: 12px;
+  }
+
+  .app-navbar-user {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-navbar {
+    min-height: auto;
+    padding: 14px 18px;
+
+    flex-wrap: wrap;
+  }
+
+  .app-navbar-logo {
+    flex: 1;
+  }
+
+  .app-navbar-right {
+    order: 1;
+  }
+
+  .app-navbar-links {
+    order: 2;
+
+    width: 100%;
+
+    overflow-x: auto;
+    justify-content: flex-start;
+
+    padding-bottom: 3px;
+  }
+
+  .app-navbar-links a {
+    white-space: nowrap;
+  }
+}
