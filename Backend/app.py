@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +17,7 @@ def get_db():
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 
 # ==============================
@@ -79,10 +81,318 @@ def init_db():
         )
     """)
 
+    # Users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Student profiles table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS student_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER UNIQUE NOT NULL,
+            education TEXT NOT NULL,
+            skills TEXT NOT NULL,
+            experience TEXT NOT NULL,
+            study_time TEXT NOT NULL,
+            interests TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
+#signup logic
+@app.route("/api/auth/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
 
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    # Basic validation
+    if not name or not email or not password:
+        return jsonify({
+            "error": "Name, email and password are required."
+        }), 400
+
+    if len(password) < 6:
+        return jsonify({
+            "error": "Password must contain at least 6 characters."
+        }), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check whether email already exists
+    cursor.execute(
+        "SELECT id FROM users WHERE email = ?",
+        (email,)
+    )
+
+    existing_user = cursor.fetchone()
+
+    if existing_user:
+        conn.close()
+
+        return jsonify({
+            "error": "An account with this email already exists."
+        }), 409
+
+    # Hash password before storing it
+    password_hash = generate_password_hash(password)
+
+    cursor.execute(
+        """
+        INSERT INTO users (name, email, password_hash)
+        VALUES (?, ?, ?)
+        """,
+        (name, email, password_hash)
+    )
+
+    conn.commit()
+
+    user_id = cursor.lastrowid
+
+    conn.close()
+
+    return jsonify({
+        "message": "Account created successfully.",
+        "user": {
+            "id": user_id,
+            "name": name,
+            "email": email
+        }
+    }), 201
+
+# ==============================
+# Login Logic
+# ==============================
+
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    # Basic validation
+    if not email or not password:
+        return jsonify({
+            "error": "Email and password are required."
+        }), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Find user by email
+    cursor.execute(
+        """
+        SELECT id, name, email, password_hash
+        FROM users
+        WHERE email = ?
+        """,
+        (email,)
+    )
+
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+
+        return jsonify({
+            "error": "Invalid email or password."
+        }), 401
+
+    # Check password
+    if not check_password_hash(user["password_hash"], password):
+        conn.close()
+
+        return jsonify({
+            "error": "Invalid email or password."
+        }), 401
+
+    conn.close()
+
+    return jsonify({
+        "message": "Login successful.",
+        "user": {
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"]
+        }
+    }), 200
+
+# ==============================
+# STUDENT PROFILE
+# ==============================
+
+@app.route("/api/student-profile", methods=["POST"])
+def save_student_profile():
+
+    data = request.get_json() or {}
+
+    user_id = data.get("userId")
+    education = data.get("education", "").strip()
+    skills = data.get("skills", "").strip()
+    experience = data.get("experience", "").strip()
+    study_time = data.get("studyTime", "").strip()
+    interests = data.get("interests", "").strip()
+
+    # Basic validation
+    if not user_id:
+        return jsonify({
+            "error": "User ID is required."
+        }), 400
+
+    if not education or not skills or not experience or not study_time or not interests:
+        return jsonify({
+            "error": "All profile fields are required."
+        }), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check whether user exists
+    cursor.execute(
+        "SELECT id FROM users WHERE id = ?",
+        (user_id,)
+    )
+
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+
+        return jsonify({
+            "error": "User not found."
+        }), 404
+
+    # Check whether profile already exists
+    cursor.execute(
+        """
+        SELECT id
+        FROM student_profiles
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    )
+
+    existing_profile = cursor.fetchone()
+
+    if existing_profile:
+
+        # Update existing profile
+        cursor.execute(
+            """
+            UPDATE student_profiles
+            SET education = ?,
+                skills = ?,
+                experience = ?,
+                study_time = ?,
+                interests = ?
+            WHERE user_id = ?
+            """,
+            (
+                education,
+                skills,
+                experience,
+                study_time,
+                interests,
+                user_id
+            )
+        )
+
+        message = "Student profile updated successfully."
+
+    else:
+
+        # Create new profile
+        cursor.execute(
+            """
+            INSERT INTO student_profiles
+            (
+                user_id,
+                education,
+                skills,
+                experience,
+                study_time,
+                interests
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                education,
+                skills,
+                experience,
+                study_time,
+                interests
+            )
+        )
+
+        message = "Student profile created successfully."
+
+    conn.commit()
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": message
+    }), 200
+
+# ==============================
+# To get user profile info when he comes back
+# ==============================
+
+@app.route("/api/student-profile/<int:user_id>", methods=["GET"])
+def get_student_profile(user_id):
+
+    conn = get_db()
+
+    profile = conn.execute(
+        """
+        SELECT
+            user_id,
+            education,
+            skills,
+            experience,
+            study_time,
+            interests
+        FROM student_profiles
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if not profile:
+        return jsonify({
+            "success": True,
+            "profile": None
+        }), 200
+
+    return jsonify({
+        "success": True,
+        "profile": {
+            "userId": profile["user_id"],
+            "education": profile["education"],
+            "skills": profile["skills"],
+            "experience": profile["experience"],
+            "studyTime": profile["study_time"],
+            "interests": profile["interests"]
+        }
+    }), 200
 # ==============================
 # CAREER DATA
 # ==============================

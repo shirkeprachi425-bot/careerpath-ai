@@ -200,6 +200,17 @@
   font-weight: 700;
 }
 
+.auth-success {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #bce8ce;
+  border-radius: 10px;
+  background: #f0fff5;
+  color: #16824d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .auth-card form {
   display: flex;
   flex-direction: column;

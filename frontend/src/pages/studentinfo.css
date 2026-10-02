@@ -105,6 +105,33 @@
   box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25);
 }
 
+.student-error {
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background: #fff1f1;
+  border: 1px solid #ffcaca;
+  color: #c43e3e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.student-success {
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background: #effdf5;
+  border: 1px solid #b9efd0;
+  color: #16824d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.student-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
 @media (max-width: 650px) {
   .student-info-card {
     padding: 28px 20px;
@@ -123,3 +150,4 @@
     grid-column: auto;
   }
 }
+

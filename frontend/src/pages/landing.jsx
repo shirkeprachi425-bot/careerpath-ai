@@ -1,16 +1,13 @@
+import { useNavigate } from "react-router-dom";
 import "./Landing.css";
-
-function Landing({ onGetStarted, onTakeTest }) {
+function Landing() {
+  const navigate = useNavigate();
   return (
     <div className="landing">
-
       {/* HERO */}
       <section className="landing-hero">
-
         <div className="hero-content">
-          <div className="hero-badge">
-            ✨ AI-Powered Career Navigator
-          </div>
+          <div className="hero-badge">✨ AI-Powered Career Navigator</div>
 
           <h1>
             Build Your
@@ -18,15 +15,15 @@ function Landing({ onGetStarted, onTakeTest }) {
           </h1>
 
           <p>
-            Discover the right career, identify your skill gaps,
-            get a personalized learning roadmap and track your
-            progress — all in one place.
+            Discover the right career, identify your skill gaps, get a
+            personalized learning roadmap and track your progress — all in one
+            place.
           </p>
 
           <div className="hero-buttons">
             <button
               className="landing-primary"
-              onClick={onGetStarted}
+              onClick={() => navigate("/auth")}
             >
               Get Started
               <span>→</span>
@@ -34,7 +31,7 @@ function Landing({ onGetStarted, onTakeTest }) {
 
             <button
               className="landing-secondary"
-              onClick={onTakeTest}
+              onClick={() => navigate("/auth")}
             >
               🎯 Take Career Test
             </button>
@@ -49,9 +46,7 @@ function Landing({ onGetStarted, onTakeTest }) {
 
         {/* RIGHT VISUAL */}
         <div className="hero-visual">
-
           <div className="dashboard-preview">
-
             <div className="preview-header">
               <div>
                 <small>Your Career Journey</small>
@@ -73,7 +68,6 @@ function Landing({ onGetStarted, onTakeTest }) {
             </div>
 
             <div className="preview-cards">
-
               <div className="preview-card">
                 <span>🎯</span>
                 <div>
@@ -89,7 +83,6 @@ function Landing({ onGetStarted, onTakeTest }) {
                   <small>12 weeks plan</small>
                 </div>
               </div>
-
             </div>
 
             <div className="preview-task">
@@ -99,7 +92,6 @@ function Landing({ onGetStarted, onTakeTest }) {
                 <small>Complete JavaScript basics</small>
               </div>
             </div>
-
           </div>
 
           <div className="floating-card floating-one">
@@ -111,14 +103,11 @@ function Landing({ onGetStarted, onTakeTest }) {
             🤖 <strong>AI Roadmap</strong>
             <span>Updated</span>
           </div>
-
         </div>
-
       </section>
 
       {/* FEATURES */}
       <section className="landing-features">
-
         <div className="section-heading">
           <span>WHY CAREERPATH AI?</span>
 
@@ -128,13 +117,12 @@ function Landing({ onGetStarted, onTakeTest }) {
           </h2>
 
           <p>
-            From choosing a career to tracking your learning,
-            CareerPath AI guides you at every step.
+            From choosing a career to tracking your learning, CareerPath AI
+            guides you at every step.
           </p>
         </div>
 
         <div className="feature-grid">
-
           <Feature
             icon="🎯"
             title="Career Selection"
@@ -158,14 +146,11 @@ function Landing({ onGetStarted, onTakeTest }) {
             title="Progress Tracking"
             text="Track completed milestones and see how far you have progressed."
           />
-
         </div>
-
       </section>
 
       {/* HOW IT WORKS */}
       <section className="how-section">
-
         <div className="section-heading">
           <span>HOW IT WORKS</span>
 
@@ -176,7 +161,6 @@ function Landing({ onGetStarted, onTakeTest }) {
         </div>
 
         <div className="journey">
-
           <Journey
             number="01"
             icon="👤"
@@ -204,14 +188,11 @@ function Landing({ onGetStarted, onTakeTest }) {
             title="Follow Roadmap"
             text="Learn step-by-step and track your progress."
           />
-
         </div>
-
       </section>
 
       {/* CTA */}
       <section className="landing-cta">
-
         <div>
           <span>READY TO START?</span>
 
@@ -220,20 +201,13 @@ function Landing({ onGetStarted, onTakeTest }) {
             <strong> Today.</strong>
           </h2>
 
-          <p>
-            Take the first step towards a smarter career journey.
-          </p>
+          <p>Take the first step towards a smarter career journey.</p>
 
-          <button
-            onClick={onGetStarted}
-            className="cta-button"
-          >
+          <button onClick={() => navigate("/auth")} className="cta-button">
             Start My Career Journey →
           </button>
         </div>
-
       </section>
-
     </div>
   );
 }
@@ -243,17 +217,13 @@ function Landing({ onGetStarted, onTakeTest }) {
 function Feature({ icon, title, text }) {
   return (
     <div className="landing-feature-card">
-
-      <div className="feature-icon">
-        {icon}
-      </div>
+      <div className="feature-icon">{icon}</div>
 
       <h3>{title}</h3>
 
       <p>{text}</p>
 
       <span className="feature-arrow">→</span>
-
     </div>
   );
 }
@@ -263,17 +233,13 @@ function Feature({ icon, title, text }) {
 function Journey({ number, icon, title, text }) {
   return (
     <div className="journey-card">
-
       <small>{number}</small>
 
-      <div className="journey-icon">
-        {icon}
-      </div>
+      <div className="journey-icon">{icon}</div>
 
       <h3>{title}</h3>
 
       <p>{text}</p>
-
     </div>
   );
 }
