@@ -45,7 +45,7 @@ function StudentInfo({ user }) {
         console.log("Loading profile for user:", userId);
 
         const response = await fetch(
-          `http://127.0.0.1:5000/api/student-profile/${userId}`,
+          `http://careerpath-ai-jhse.onrender.com/api/student-profile/${userId}`,
         );
 
         const data = await response.json();
@@ -120,7 +120,7 @@ function StudentInfo({ user }) {
       console.log("Saving profile for user:", userId);
 
       const response = await fetch(
-        "http://127.0.0.1:5000/api/student-profile",
+        "http://careerpath-ai-jhse.onrender.com/api/student-profile",
         {
           method: "POST",
 

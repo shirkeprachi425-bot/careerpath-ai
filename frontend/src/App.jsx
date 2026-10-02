@@ -271,7 +271,7 @@ function AppRoutes() {
   const checkUserStatus = async (userId) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/user/${userId}/status`
+        `http://careerpath-ai-jhse.onrender.com/api/user/${userId}/status`
       );
 
       const data = await response.json();
@@ -298,7 +298,7 @@ function AppRoutes() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/ai/recommend/${userId}`
+        `https://careerpath-ai-jhse.onrender.com/api/ai/recommend/${userId}`
       );
 
       const data = await response.json();

@@ -29,7 +29,7 @@ function Assessment({ userId, career = "Career Assessment", onComplete }) {
       setError("");
 
       const response = await fetch(
-        `http://127.0.0.1:5000/api/assessment/questions/${userId}`,
+        `http://careerpath-ai-jhse.onrender.com/api/assessment/questions/${userId}`,
       );
 
       const data = await response.json();
@@ -109,7 +109,7 @@ function Assessment({ userId, career = "Career Assessment", onComplete }) {
       });
 
       const response = await fetch(
-        "http://127.0.0.1:5000/api/assessment/submit",
+        "http://careerpath-ai-jhse.onrender.com/api/assessment/submit",
         {
           method: "POST",
           headers: {

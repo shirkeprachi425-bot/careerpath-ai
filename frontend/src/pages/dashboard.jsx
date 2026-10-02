@@ -26,7 +26,7 @@ function Dashboard({
         setError("");
 
         const response = await fetch(
-          `http://127.0.0.1:5000/api/ai/recommend/${userId}`
+          `http://careerpath-ai-jhse.onrender.com/api/ai/recommend/${userId}`
         );
 
         const data = await response.json();
