@@ -1,4 +1,4 @@
-import "./Roadmap.css";
+import "./roadmap.css";
 
 function Roadmap({
   profile,
