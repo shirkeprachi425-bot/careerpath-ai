@@ -1,4 +1,4 @@
-import "./Resources.css";
+import "./resources.css";
 
 function Resources() {
   const resources = [
