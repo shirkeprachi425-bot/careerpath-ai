@@ -241,7 +241,7 @@ import {
 
 import Landing from "./pages/landing";
 import Auth from "./pages/Auth";
-import StudentInfo from "./pages/StudentInfo";
+import StudentInfo from "./pages/studentinfo";
 import Assessment from "./pages/Assessment";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/dashboard";
