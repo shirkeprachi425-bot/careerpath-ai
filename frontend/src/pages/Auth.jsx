@@ -61,7 +61,7 @@ function Auth({ onLogin }) {
       // =========================
 
       if (mode === "signup") {
-        fetch("http://127.0.0.1:5000/api/auth/signup", {
+        fetch("https://careerpath-ai-jhse.onrender.com/api/auth/signup", {
 
           method: "POST",
           headers: {
@@ -106,7 +106,7 @@ function Auth({ onLogin }) {
       // LOGIN
       // =========================
 
-      const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
+      const response = await fetch("https://careerpath-ai-jhse.onrender.com/api/auth/login", {
 
         method: "POST",
         headers: {

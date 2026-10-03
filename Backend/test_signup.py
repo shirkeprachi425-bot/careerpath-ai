@@ -1,7 +1,7 @@
 import urllib.request
 import json
 
-url = "http://127.0.0.1:5000/api/auth/signup"
+url = "https://127.0.0.1:5000/api/auth/signup"
 
 data = {
     "name": "Test User",

@@ -1,6 +1,6 @@
 import requests
 
-url = "http://127.0.0.1:5000/api/assessment/submit"
+url = "https://127.0.0.1:5000/api/assessment/submit"
 
 data = {
     "userId": 5,

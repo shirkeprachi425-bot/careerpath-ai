@@ -2,7 +2,7 @@
 import requests
 import json
 
-BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "https://127.0.0.1:5000"
 
 # Change this to an existing user's ID from your database
 USER_ID = 5
