@@ -37,7 +37,7 @@ function Profile({
             <div className="profile-field">
               <label>Full Name</label>
               <input
-                value={profile.name}
+                value={profile?.name}
                 onChange={(e) => update("name", e.target.value)}
                 placeholder="Enter your name"
                 required
@@ -47,7 +47,7 @@ function Profile({
             <div className="profile-field">
               <label>Education</label>
               <select
-                value={profile.education}
+                value={profile?.education}
                 onChange={(e) => update("education", e.target.value)}
                 required
               >
@@ -149,20 +149,20 @@ function Profile({
             {normalizedCareers.map((career) => (
               <button
                 type="button"
-                key={career.name}
+                key={career?.name}
                 className={`career-option ${
-                  profile.career === career.name ? "selected" : ""
+                  profile?.career === career?.name ? "selected" : ""
                 }`}
-                onClick={() => update("career", career.name)}
+                onClick={() => update("career", career?.name)}
               >
                 <span className="career-icon">
                   {career.icon}
                 </span>
 
-                <strong>{career.name}</strong>
+                <strong>{career?.name}</strong>
 
                 <small>
-                  {career.skills.length} core skills
+                  {caree?.skills.length} core skills
                 </small>
               </button>
             ))}

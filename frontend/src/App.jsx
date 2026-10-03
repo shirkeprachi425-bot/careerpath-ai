@@ -190,7 +190,7 @@
 //           path="/dashboard"
 //           element={
 //             <Dashboard
-//               userName={user.name}
+//               userName={user?.name}
 //               userId={user.id}
 //               onSkillGap={() => navigate("/skill-gap")}
 //               onRoadmap={() => navigate("/roadmap")}
@@ -513,8 +513,8 @@ function AppRoutes() {
           path="/dashboard"
           element={
             <Dashboard
-              userName={user.name}
-              userId={user.id}
+              userName={user?.name}
+              userId={user?.id}
               onSkillGap={() => navigate("/skill-gap")}
               onRoadmap={() => navigate("/roadmap")}
               onResources={() => navigate("/resources")}
